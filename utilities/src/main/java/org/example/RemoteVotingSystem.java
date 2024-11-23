@@ -5,7 +5,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
+import java.util.List;
 
 public class RemoteVotingSystem extends UnicastRemoteObject implements VotingSystem {
 
@@ -49,8 +49,8 @@ public class RemoteVotingSystem extends UnicastRemoteObject implements VotingSys
     }
 
     @Override
-    public Set<String> getTopics() {
-        return topics.keySet();
+    public List<String> getTopics() {
+        return new ArrayList<String>(topics.keySet());
     }
 
     @Override

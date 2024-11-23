@@ -1,25 +1,19 @@
 package org.example;
 
-import java.io.IOException;
-import java.io.InvalidObjectException;
-import java.net.MalformedURLException;
 import java.rmi.Naming;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-import java.util.Set;
+import java.util.List;
 
-import org.example.Utils;
 import org.example.Vote.Choice;
 
 public class Client {
     public static void main(String[] args) {
         try {
-            VotingSystem stub = (VotingSystem) Naming.lookup("VOTE");
+            VotingSystem stub = (VotingSystem) Naming.lookup("//localhost/VOTE");
 
             String userInput;
             String[] userInputArray;
             while (!(userInput = StandardInputUtil.readLine()).toLowerCase().equals("quit")) {
-                userInputArray = userInput.split(" ", 2);
+                userInputArray = userInput.split(" ", 5);
                 processUserInput(userInputArray, stub);
             }
         } catch (Exception e) {
@@ -36,6 +30,7 @@ public class Client {
             case "vote":
                 if (userInputArray.length != 3 || (!userInputArray[2].equals("y") && !userInputArray[2].equals("n"))) {
                     System.out.println("Usage: vote <topic> <y/n>");
+                    break;
                 }
                 try {
                     Choice choice;
@@ -58,9 +53,10 @@ public class Client {
                     return;
                 }
                 break;
-            case "counts":
+            case "count":
                 if (userInputArray.length != 2) {
-                    System.out.println("Usage: counts <topic>");
+                    System.out.println("Usage: count <topic>");
+                    break;
                 }
                 try {
                     int[] results = stub.getVoteCounts(userInputArray[1]);
@@ -73,10 +69,11 @@ public class Client {
             case "topic": //topic (lists topics) //topic add topic-name (creates new topic)
                 if (userInputArray.length != 1 && !(userInputArray.length == 3 && userInputArray[1].toLowerCase().equals("add"))) {
                     System.out.println("Usage: topic\nor\nUsage: topic add <topic>");
+                    break;
                 }
                 try {
                     if (userInputArray.length == 1) {
-                        Set<String> topics = stub.getTopics();
+                        List<String> topics = stub.getTopics();
                         String out = "TOPICS:\n===================\n";
                         for (String t : topics) {
                             out += t + "\n";
@@ -92,9 +89,35 @@ public class Client {
                 break;
             case "login":
                 throw new UnsupportedOperationException("login command is not implemented.");
+            case "help":
+                getHelp();
+                break;
             default:
+                System.out.println(userInputArray[0] + " is not a valid command.\nUse \"help\" to view a list of commands.");
                 return;
         }
-        
+    }
+
+    private static void getHelp() {
+        String[] commands = {
+            "vote",
+            "count",
+            "topic",
+            "login",
+            "help"
+        };
+        String[] descriptions = {
+            "Usage: vote <topic> <y/n>",
+            "Usage: count <topic>",
+            "Usage: topic\n\tor\n\tUsage: topic add <topic>",
+            "!! - Not Implemented",
+            "Usage: help"
+        };
+
+        System.out.println("COMMANDS:\n===================");
+        for (int i = 0; i < commands.length; i++) {
+            System.out.println(commands[i]);
+            System.out.println("\t" + descriptions[i]);
+        }
     }
 }

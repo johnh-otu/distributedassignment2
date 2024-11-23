@@ -10,6 +10,7 @@ public class StandardInputUtil {
 
     public static String readLine() throws IOException {
         try {
+            System.out.print("> ");
             String input = stdIn.readLine();
             return input;
         } catch (Exception e) {
