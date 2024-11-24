@@ -66,5 +66,11 @@ public class RemoteVotingSystem extends UnicastRemoteObject implements VotingSys
         users.put(user.getID(), user);
     }
     
+    public boolean userExists(int id) {
+        return users.containsKey(id);
+    }
+    public boolean checkPasskey(int id, String key) {
+        return users.get(id).passKeyIs(key);
+    }
     
 }
