@@ -10,11 +10,32 @@ public class Client {
         try {
             VotingSystem stub = (VotingSystem) Naming.lookup("//localhost/VOTE");
 
-            String userInput;
+            String userInput = "";
             String[] userInputArray;
+            User user = new User(0, "");
+
+            System.out.println("NEW USER\nEnter passkey ");
+            userInput = StandardInputUtil.readLine();
+            
+            for (int i = 0; i < 10; i++) { //try to create new user up to 10 times
+                user = new User((int) System.currentTimeMillis() * System.identityHashCode(userInput), userInput);
+                try {
+                    stub.newUser(user);
+                    break;
+                } catch (Exception e) {
+                    if (i == 9) {
+                        System.out.println("Couldn't create user. Shutting down...");
+                        return;
+                    }
+                    System.out.println("Failed to create new user. Retrying...");
+                }
+            }
+
+            System.out.println("User created successfully.");
+
             while (!(userInput = StandardInputUtil.readLine()).toLowerCase().equals("quit")) {
                 userInputArray = userInput.split(" ", 5);
-                processUserInput(userInputArray, stub);
+                processUserInput(userInputArray, stub, user);
             }
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -22,9 +43,9 @@ public class Client {
         }
     }
 
-    private static void processUserInput(String[] userInputArray, VotingSystem stub) {
+    private static void processUserInput(String[] userInputArray, VotingSystem stub, User user) {
         
-        if (userInputArray == null || userInputArray.length < 1) { return; } //blank line
+        if (userInputArray == null || userInputArray.length < 1 || userInputArray[0].equals("")) { return; } //blank line
         
         switch (userInputArray[0].toLowerCase()) {
             case "vote":
@@ -46,10 +67,12 @@ public class Client {
                             return;
                     }
 
-                    Vote vote = new Vote(null, choice); //TODO : Add user
-                    stub.castVote(userInputArray[1], vote);
+                    System.out.println("Enter passkey");
+                    String passkey = StandardInputUtil.readLine();
+                    stub.castVote(userInputArray[1], user, choice, passkey);
+                    System.out.println("Vote submitted!");
                 } catch (Exception e) {
-                    System.err.println("ERROR: " + e.getMessage());
+                    System.err.println(e.getMessage());
                     return;
                 }
                 break;
@@ -62,7 +85,7 @@ public class Client {
                     int[] results = stub.getVoteCounts(userInputArray[1]);
                     System.out.println(userInputArray[1] + ": Y=" + results[0] + " N=" + results[1]);
                 } catch (Exception e) {
-                    System.err.println("ERROR: " + e.getMessage());
+                    System.err.println(e.getMessage());
                     return;
                 }
                 break;
@@ -81,14 +104,13 @@ public class Client {
                         System.out.print(out);
                     } else {
                         stub.createTopic(userInputArray[2]);
+                        System.out.println("Topic created successfully.");
                     }
                 } catch (Exception e) {
-                    System.err.println("ERROR: " + e.getMessage());
+                    System.err.println(e.getMessage());
                     return;
                 }
                 break;
-            case "login":
-                throw new UnsupportedOperationException("login command is not implemented.");
             case "help":
                 getHelp();
                 break;
@@ -103,14 +125,12 @@ public class Client {
             "vote",
             "count",
             "topic",
-            "login",
             "help"
         };
         String[] descriptions = {
             "Usage: vote <topic> <y/n>",
             "Usage: count <topic>",
             "Usage: topic\n\tor\n\tUsage: topic add <topic>",
-            "!! - Not Implemented",
             "Usage: help"
         };
 

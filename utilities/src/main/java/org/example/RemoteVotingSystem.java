@@ -10,16 +10,21 @@ import java.util.List;
 public class RemoteVotingSystem extends UnicastRemoteObject implements VotingSystem {
 
     private HashMap<String, VoteTopic> topics;
-    private ArrayList<User> users;
+    private HashMap<Integer, User> users;
 
     protected RemoteVotingSystem() throws RemoteException {
         super();
         topics = new HashMap<String, VoteTopic>();
-        users = new ArrayList<User>();
+        users = new HashMap<Integer, User>();
     }
 
     @Override
-    public void castVote(String topic, Vote vote) throws InvalidParameterException  {
+    public void castVote(String topic, User caster, Vote.Choice choice, String passkeyString) throws InvalidParameterException  {
+        User user = users.get(caster.getID());
+        if (user == null) {
+            throw new InvalidParameterException("User does not exist.");
+        }
+        Vote vote = new Vote(user, choice, passkeyString);
         VoteTopic voteTopic = topics.get(topic);
         if (voteTopic == null) {
             throw new InvalidParameterException("Topic \"" + topic + "\" does not exist.");
@@ -54,9 +59,11 @@ public class RemoteVotingSystem extends UnicastRemoteObject implements VotingSys
     }
 
     @Override
-    public void authenticateUser(String key) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'authenticateUser'");
+    public void newUser(User user) throws RemoteException {
+        if (users.keySet().contains(user.getID())) {
+            throw new RemoteException("User already exists. Please try again.");
+        }
+        users.put(user.getID(), user);
     }
     
     
